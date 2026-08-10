@@ -38,7 +38,7 @@ def _lineage(df):
     table_properties=TABLE_PROPERTIES,
 )
 def bronze_ghcnd_stations():
-    raw = spark.read.text(f"{SOURCE}/ghcnd-stations.txt")  # noqa: F821
+    raw = spark.read.text(f"{SOURCE}/ghcnd-stations.txt")
     return _lineage(
         raw.select(
             F.trim(F.substring("value", 1, 11)).alias("station_id"),
@@ -58,7 +58,7 @@ def bronze_ghcnd_stations():
 )
 def bronze_ghcnd_code_lists():
     def read_codes(file, code_type):
-        raw = spark.read.text(f"{SOURCE}/{file}")  # noqa: F821
+        raw = spark.read.text(f"{SOURCE}/{file}") 
         return raw.select(
             F.lit(code_type).alias("code_type"),
             F.trim(F.substring("value", 1, 2)).alias("code"),
@@ -74,7 +74,7 @@ def bronze_ghcnd_code_lists():
 # Inventory, upsert on (station_id, element) -> AUTO CDC
 @dp.temporary_view(name="inventory_source")
 def inventory_source():
-    raw = spark.read.text(f"{SOURCE}/ghcnd-inventory.txt")  # noqa: F821
+    raw = spark.read.text(f"{SOURCE}/ghcnd-inventory.txt")
     return raw.select(
         F.trim(F.substring("value", 1, 11)).alias("station_id"),
         F.trim(F.substring("value", 13, 8)).alias("latitude"),
