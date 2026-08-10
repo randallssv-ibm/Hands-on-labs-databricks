@@ -1,0 +1,81 @@
+# NOAA GHCN-Daily lab
+# Single workspace, two Unity Catalog catalogs standing in for two environments.
+# All jobs run on serverless compute
+
+bundle:
+  name: dbx_hands_on_labs
+
+include:
+  - resources/*.yml
+  - resources/*/*.yml
+  - resources/*/*/*.yml
+
+variables:
+  catalog:
+    description: UC catalog that plays the role of the environment.
+    default: training_dev
+  bronze_schema:
+    description: Schema holding bronze tables and the landing/ops volumes.
+    default: NOAA_bronze
+  ops_volume:
+    description: Managed volume for checkpoints and Auto Loader schema locations.
+    default: ops
+
+  storage_credential:
+    description: Name of the storage credential created in the one-time AWS step (see README).
+    default: ghcn_public_data
+  source_year:
+    description: Only this year of GHCN-D daily data is pulled (cost control).
+    default: "2026"
+
+  de_group:
+    description: Data engineering group.
+    default: labs_data_engineer
+  analyst_group:
+    description: Analytics / BI consumer group.
+    default: labs_analysts
+  admin_group:
+    description: Owner group for the catalog and schema (no individual owners).
+    default: labs_platform_admin
+  run_as_sp:
+    description: Application ID of the service principal that runs production jobs.
+    default: 00000000-0000-0000-0000-000000000000
+
+  # notification_email:
+  #   default: you@example.com
+
+targets:
+  # dev: everything is prefixed with your username, schedules are paused,
+  # jobs run as the deploying user, serverless.
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://adb-7405615778917918.18.azuredatabricks.net/
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/dev/${bundle.name}
+    variables:
+      catalog: training_dev
+    presets:
+      name_prefix: "[dev ${workspace.current_user.short_name}] "
+      trigger_pause_status: PAUSED
+
+  # prod: no name mangling, schedules live, jobs run as a service principal,
+  # humans get run/view rights only.
+  prod:
+    mode: production
+    workspace:
+      host: https://adb-7405615778917918.18.azuredatabricks.net/
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/prod/${bundle.name}
+    # run_as:
+    #   service_principal_name: ${var.run_as_sp}
+    variables:
+      catalog: training_prod
+    presets:
+      trigger_pause_status: PAUSED
+    # permissions:
+    #   - level: CAN_MANAGE
+    #     group_name: ${var.admin_group}
+    #   - level: CAN_MANAGE_RUN
+    #     group_name: ${var.de_group}
+    #   - level: CAN_VIEW
+    #     group_name: ${var.analyst_group}

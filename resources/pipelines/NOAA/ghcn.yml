@@ -1,0 +1,58 @@
+resources:
+  pipelines:
+    bronze:
+      name: ghcn_bronze
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      serverless: true
+      continuous: false
+      configuration:
+        ghcn.source_year: ${var.source_year}
+      libraries:
+        - file:
+            path: ./data-pipeline/NOAA_bronze_pipeline.py
+      # permissions:
+      #   - level: CAN_MANAGE
+      #     group_name: data-engineer
+      #   - level: CAN_VIEW
+      #     group_name: analytic
+      # notifications:
+      #   - email_recipients:
+      #       - ${var.notification_email}
+      #     alerts:
+      #       - on-update-failure
+      #       - on-update-fatal-failure
+      #       - on-flow-failure        
+
+  # jobs:
+  #   bronze_ingest:
+  #     name: ghcn_bronze_ingest
+  #     schedule:
+  #       quartz_cron_expression: "0 0/30 * * * ?"
+  #       timezone_id: America/Costa_Rica
+
+  #     tasks:
+  #       - task_key: setup
+  #         notebook_task:
+  #           notebook_path: ../setup/00_setup.py
+  #           base_parameters:
+  #             catalog: ${var.catalog}
+  #             schema: ${var.schema}
+  #             storage_credential: ${var.storage_credential}
+  #             de_group: ${var.de_group}
+  #             analyst_group: ${var.analyst_group}
+
+  #       - task_key: build_bronze
+  #         depends_on:
+  #           - task_key: setup
+  #         pipeline_task:
+  #           pipeline_id: ${resources.pipelines.bronze.id}
+
+  #       - task_key: daily_csv_streaming
+  #         depends_on:
+  #           - task_key: setup
+  #         notebook_task:
+  #           notebook_path: ../jobs/daily_csv_streaming.py
+  #           base_parameters:
+  #             catalog: ${var.catalog}
+  #             schema: ${var.schema}
