@@ -3,14 +3,14 @@ resources:
     bronze:
       name: ghcn_bronze
       catalog: ${var.catalog}
-      schema: ${var.schema}
+      schema: ${var.bronze_schema}
       serverless: true
       continuous: false
       configuration:
         ghcn.source_year: ${var.source_year}
       libraries:
         - file:
-            path: ./data-pipeline/NOAA_bronze_pipeline.py
+            path: ../../../data-pipeline/NOAA/pipelines/NOAA_bronze_pipeline.py
       # permissions:
       #   - level: CAN_MANAGE
       #     group_name: data-engineer
@@ -34,7 +34,7 @@ resources:
   #     tasks:
   #       - task_key: setup
   #         notebook_task:
-  #           notebook_path: ../setup/00_setup.py
+  #           notebook_path: ../setup/setup.py
   #           base_parameters:
   #             catalog: ${var.catalog}
   #             schema: ${var.schema}
@@ -52,7 +52,7 @@ resources:
   #         depends_on:
   #           - task_key: setup
   #         notebook_task:
-  #           notebook_path: ../jobs/daily_csv_streaming.py
+  #           notebook_path: ../../../data-pipeline/NOAA/jobs/NOAA_station_streaming.py
   #           base_parameters:
   #             catalog: ${var.catalog}
   #             schema: ${var.schema}
