@@ -1,3 +1,7 @@
+# Purpose: Bronze declarative pipeline for the NOAA GHCN-D hands-on lab
+# Organization: IBM
+# Owner: Snowbricks
+
 """
 Bronze layer
 
@@ -17,6 +21,11 @@ from pyspark.sql import functions as F
 SOURCE = "s3://noaa-ghcn-pds"
 YEAR = spark.conf.get("ghcn.source_year")
 
+TABLE_PROPERTIES = {
+    "delta.autoOptimize.optimizeWrite": "true",
+    "delta.autoOptimize.autoCompact": "true",
+}
+
 
 def _lineage(df):
     return df.withColumn("_source_file", F.col("_metadata.file_path")) \
@@ -26,6 +35,7 @@ def _lineage(df):
 @dp.materialized_view(
     name="bronze_ghcnd_stations",
     comment="Station master list, full snapshot (materialized view). Rebuilt from ghcnd-stations.txt on every run.",
+    table_properties=TABLE_PROPERTIES,
 )
 def bronze_ghcnd_stations():
     raw = spark.read.text(f"{SOURCE}/ghcnd-stations.txt")  # noqa: F821
@@ -44,6 +54,7 @@ def bronze_ghcnd_stations():
 @dp.materialized_view(
     name="bronze_ghcnd_code_lists",
     comment="FIPS country codes and US/CA state codes, refreshed on every run.",
+    table_properties=TABLE_PROPERTIES,
 )
 def bronze_ghcnd_code_lists():
     def read_codes(file, code_type):
@@ -77,6 +88,7 @@ def inventory_source():
 dp.create_streaming_table(
     name="bronze_ghcnd_inventory",
     comment="Current period of record per (station, element). Kept in sync with AUTO CDC.",
+    table_properties=TABLE_PROPERTIES,
 )
 
 dp.create_auto_cdc_flow(
@@ -87,11 +99,12 @@ dp.create_auto_cdc_flow(
     stored_as_scd_type=1,
 )
 
-# Daily parquet observations, incremental file arrivals (Auto Loader). 
+# Daily parquet observations, incremental file arrivals (Auto Loader).
 # This is the pattern a declarative pipeline is built for.
 @dp.table(
     name="bronze_ghcnd_daily_parquet",
     comment="Daily observations for YEAR from parquet/by_year, picked up incrementally.",
+    table_properties=TABLE_PROPERTIES,
 )
 @dp.expect("station_id_is_11_chars", "length(ID) = 11")
 def bronze_ghcnd_daily_parquet():

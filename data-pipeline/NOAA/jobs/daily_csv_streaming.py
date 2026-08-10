@@ -1,4 +1,11 @@
 # Databricks notebook source
+# COMMAND ----------
+# Notebook: daily_csv_streaming
+# Purpose: Plain Structured Streaming load of GHCN-D daily CSV observations into bronze
+# Organization: IBM
+# Owner: Snowbricks
+
+# COMMAND ----------
 # MAGIC %md
 # MAGIC # Daily observations (CSV), plain Structured Streaming
 # MAGIC
@@ -12,15 +19,15 @@
 # COMMAND ----------
 
 dbutils.widgets.text("catalog", "training_dev")
-dbutils.widgets.text("schema", "bronze")
+dbutils.widgets.text("schema", "NOAA_bronze")
 dbutils.widgets.text("country_codes", "CS,PM,NU")  # Costa Rica, Panama, Nicaragua
 
 catalog = dbutils.widgets.get("catalog")
 schema = dbutils.widgets.get("schema")
 codes = [c.strip() for c in dbutils.widgets.get("country_codes").split(",")]
 
-TABLE = f"{catalog}.{schema}.bronze_ghcnd_daily_csv"
-CHECKPOINT = f"/Volumes/{catalog}/{schema}/checkpoints/daily_csv"
+TABLE = f"{catalog}.{schema}.NOAA_bronze_ghcnd_daily_csv"
+CHECKPOINT = f"/Volumes/{catalog}/{schema}/checkpoint_daily_csv"
 
 # COMMAND ----------
 
@@ -66,4 +73,4 @@ display(spark.table(TABLE).groupBy(F.substring("id", 1, 2).alias("country")).cou
 
 # MAGIC %md
 # MAGIC Run this notebook again with nothing new landed in the bucket and it processes
-# MAGIC zero rows — the checkpoint remembers which files it already read. 
+# MAGIC zero rows — the checkpoint remembers which files it already read.
