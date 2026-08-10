@@ -1,2 +1,90 @@
-.databricks
-.vscode
+# ============================================================
+# Databricks Asset Bundles
+# ============================================================
+.databricks/
+**/.databricks/
+.databricks-login.json
+databricks.yml.bak
+.__builtins__.pyi
+
+# Bundle build output
+dist/
+build/
+*.whl
+
+# Local bundle overrides (never commit real workspace hosts/tokens)
+databricks.local.yml
+**/*.local.yml
+
+# ============================================================
+# Databricks CLI / auth
+# ============================================================
+.databrickscfg
+.netrc
+
+# ============================================================
+# Notebooks exported/synced locally (keep source, drop caches)
+# ============================================================
+.ipynb_checkpoints/
+*.ipynb
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+*.egg
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# uv / pip
+uv.lock.bak
+pip-wheel-metadata/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Type checkers / linters
+.mypy_cache/
+.ruff_cache/
+.pytype/
+
+# ============================================================
+# Spark / local runtime artifacts
+# ============================================================
+spark-warehouse/
+metastore_db/
+derby.log
+*.crc
+_SUCCESS
+
+# ============================================================
+# Secrets / credentials — never commit these
+# ============================================================
+*.pem
+*.key
+*.pfx
+.env
+.env.*
+secrets.yml
+secrets.yaml
+**/local.settings.json
+
+# ============================================================
+# IDE / editor
+# ============================================================
+.vscode/
+.idea/
