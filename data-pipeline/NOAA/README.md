@@ -31,7 +31,7 @@ once per workspace, not part of this project's code:
 
 Full click-by-click steps: [Databricks docs — connect to an AWS S3 external
 location](https://docs.databricks.com/aws/en/connect/unity-catalog/cloud-storage/s3/).
-Once this exists, `setup/00_setup.py` does everything else.
+Once this exists, `data-pipeline/NOAA/setup/setup.sql` does everything else.
 
 ## Deploy
 
@@ -77,7 +77,7 @@ Edit in `databricks.yml`:
 
 Two groups, both inheriting from the schema — nothing granted per table:
 
-| | `ghcn_data_engineers` | `ghcn_analysts` |
+| | `data_engineers` | `analysts` |
 |---|---|---|
 | Catalog | `USE CATALOG` | `USE CATALOG` |
 | Schema | `USE SCHEMA`, `SELECT`, `MODIFY`, `CREATE TABLE` | `USE SCHEMA`, `SELECT` |
