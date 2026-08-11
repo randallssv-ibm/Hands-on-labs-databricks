@@ -1,6 +1,6 @@
 resources:
   pipelines:
-    bronze:
+    ghcn_bronze:
       name: ghcn_bronze
       catalog: ${var.catalog}
       schema: ${var.bronze_schema}
@@ -32,25 +32,13 @@ resources:
   #       timezone_id: America/Costa_Rica
 
   #     tasks:
-  #       - task_key: setup
-  #         notebook_task:
-  #           notebook_path: ../setup/setup.py
-  #           base_parameters:
-  #             catalog: ${var.catalog}
-  #             schema: ${var.schema}
-  #             storage_credential: ${var.storage_credential}
-  #             de_group: ${var.de_group}
-  #             analyst_group: ${var.analyst_group}
-
-  #       - task_key: build_bronze
-  #         depends_on:
-  #           - task_key: setup
+  #       - task_key: build_bronze_pipeline
   #         pipeline_task:
-  #           pipeline_id: ${resources.pipelines.bronze.id}
+  #           pipeline_id: ${resources.pipelines.ghcn_bronze.id}
 
   #       - task_key: daily_csv_streaming
   #         depends_on:
-  #           - task_key: setup
+  #           - task_key: build_bronze_pipeline
   #         notebook_task:
   #           notebook_path: ../../../data-pipeline/NOAA/jobs/NOAA_station_streaming.py
   #           base_parameters:
