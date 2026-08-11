@@ -13,9 +13,9 @@ resources:
             path: ../../../data-pipeline/NOAA/pipelines/NOAA_bronze_pipeline.py
       # permissions:
       #   - level: CAN_MANAGE
-      #     group_name: data-engineer
+      #     group_name: dbx_labs_data_engineers
       #   - level: CAN_VIEW
-      #     group_name: analytic
+      #     group_name: dbx_labs_analytics
       # notifications:
       #   - email_recipients:
       #       - ${var.notification_email}

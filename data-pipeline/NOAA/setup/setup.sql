@@ -6,7 +6,7 @@
 -- schema: NOAA_bronze
 -- storage credential: ghcn_public_data   (must already exist)
 
--- Required pre-existing roles: data_engineers, analysts
+-- Required pre-existing roles: dbx_labs_data_engineers, dbx_labs_analysts
 
 -- -- CATALOG SHOULD ALREADY EXIST
 -- CREATE CATALOG IF NOT EXISTS training_dev;
@@ -27,7 +27,7 @@ CREATE EXTERNAL LOCATION IF NOT EXISTS ghcn_public_bucket
   WITH (STORAGE CREDENTIAL `ghcn_public_data`)
   COMMENT 'Public NOAA GHCN-D bucket, read-only';
 
-GRANT READ FILES ON EXTERNAL LOCATION ghcn_public_bucket TO `data_engineers`;
+GRANT READ FILES ON EXTERNAL LOCATION ghcn_public_bucket TO `dbx_labs_data_engineers`;
 
 -- The one table this project writes to directly
 -- (the declarative pipeline creates and owns its own four tables, don't pre-create those).
@@ -74,10 +74,10 @@ ALTER VOLUME training_dev.NOAA_bronze.checkpoint_daily_csv SET TAGS (
     'tech_owner' = '<full_name>'
 );
 
--- Grants: engineers read + write, analysts read only.
-GRANT USE CATALOG  ON CATALOG training_dev TO `data_engineers`;
-GRANT USE CATALOG  ON CATALOG training_dev TO `analysts`;
-GRANT USE SCHEMA, SELECT ON SCHEMA training_dev.NOAA_bronze TO `data_engineers`;
-GRANT USE SCHEMA, SELECT ON SCHEMA training_dev.NOAA_bronze TO `analysts`;
+-- Grants: engineers read + write, dbx_labs_analysts read only.
+GRANT USE CATALOG  ON CATALOG training_dev TO `dbx_labs_data_engineers`;
+GRANT USE CATALOG  ON CATALOG training_dev TO `dbx_labs_analysts`;
+GRANT USE SCHEMA, SELECT ON SCHEMA training_dev.NOAA_bronze TO `dbx_labs_data_engineers`;
+GRANT USE SCHEMA, SELECT ON SCHEMA training_dev.NOAA_bronze TO `dbx_labs_analysts`;
 GRANT MODIFY, CREATE TABLE, READ VOLUME, WRITE VOLUME
-  ON SCHEMA training_dev.NOAA_bronze TO `data_engineers`;
+  ON SCHEMA training_dev.NOAA_bronze TO `dbx_labs_data_engineers`;

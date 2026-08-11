@@ -8,8 +8,8 @@ Applied by `setup.sql`.
 | Principal | Type | Who |
 |---|---|---|
 | `platform_admins` | account group | **owns** the catalog and schema. Owners need no grants — ownership already implies everything. |
-| `data_engineers` | account group | builds and operates the pipelines |
-| `analysts` | account group | consumes the data |
+| `dbx_labs_data_engineers` | account group | builds and operates the pipelines |
+| `dbx_labs_analysts` | account group | consumes the data |
 | `sp_platform_admin` | service principal | runs every production job (`run_as` in the `prod` target) |
 
 Create them at the account level before the first deploy, then set
@@ -27,7 +27,7 @@ the model reviewable.
 
 ### Catalog
 
-| Privilege | DE | Analysts | Service principal |
+| Privilege | DE | dbx_labs_analysts | Service principal |
 |---|:--:|:--:|:--:|
 | `USE CATALOG` | ✅ | ✅ | ✅ |
 | `BROWSE` | ✅ | ✅ | — |
@@ -39,7 +39,7 @@ without leaking rows.
 
 ### Bronze schema
 
-| Privilege | DE (dev) | DE (prod) | Analysts (dev) | Analysts (prod) | SP |
+| Privilege | DE (dev) | DE (prod) | dbx_labs_analysts (dev) | dbx_labs_analysts (prod) | SP |
 |---|:--:|:--:|:--:|:--:|:--:|
 | `USE SCHEMA` | ✅ | ✅ | ✅ | — | ✅ |
 | `SELECT` | ✅ | ✅ | ✅ | — | ✅ |
@@ -52,7 +52,7 @@ without leaking rows.
 
 ### Volumes
 
-| Privilege | DE (dev) | DE (prod) | Analysts | SP |
+| Privilege | DE (dev) | DE (prod) | dbx_labs_analysts | SP |
 |---|:--:|:--:|:--:|:--:|
 | `checkpoint` — `READ VOLUME` | ✅ | ✅ | — | ✅ |
 | `checkpoint` — `WRITE VOLUME` | ✅ | — | — | ✅ |
@@ -67,7 +67,7 @@ through a deployed job running as the service principal, which means every chang
 in git and every write is attributable. `MODIFY` in prod is the privilege that
 quietly turns a pipeline into a pile of manual fixes.
 
-**Analysts see bronze in dev and nothing in prod.** Bronze here is raw on purpose:
+**dbx_labs_analysts see bronze in dev and nothing in prod.** Bronze here is raw on purpose:
 temperatures in tenths of a degree, rows that failed QC published anyway, no dedup.
 Handing that to a BI team in production produces confidently wrong dashboards. In
 dev, exploring it is exactly how an analyst learns why silver exists. In prod they
@@ -89,8 +89,8 @@ Set in the `prod` target of `databricks.yml` and applied to every job in the bun
 | Level | Group | Meaning |
 |---|---|---|
 | `CAN_MANAGE` | `platform_admins` | edit, delete, change permissions |
-| `CAN_MANAGE_RUN` | `data_engineers` | trigger and cancel runs; **cannot** edit the definition |
-| `CAN_VIEW` | `analysts` | see runs, logs and outcomes |
+| `CAN_MANAGE_RUN` | `dbx_labs_data_engineers` | trigger and cancel runs; **cannot** edit the definition |
+| `CAN_VIEW` | `dbx_labs_analysts` | see runs, logs and outcomes |
 
 `CAN_MANAGE_RUN` is the deliberate one: engineers can re-run a failed load at 3 a.m.
 without being able to edit the job in the UI and drift it away from the bundle. In
@@ -119,7 +119,7 @@ credential is involved. Swap the source for a private one and you add a layer:
 1. A **storage credential** (IAM role / managed identity) — owned by
    `platform_admins`, granted to nobody directly.
 2. An **external location** over the prefix — grant `READ FILES` to
-   `data_engineers` and the service principal; grant `WRITE FILES` to almost
+   `dbx_labs_data_engineers` and the service principal; grant `WRITE FILES` to almost
    no one.
 3. Never `CREATE EXTERNAL LOCATION` for the engineering group. That privilege lets
    the holder define a location over any path the credential can reach, which
@@ -138,7 +138,7 @@ DESCRIBE SCHEMA EXTENDED training_prod.NOAA_bronze;   -- confirm the owner is th
 ```
 
 And the checks that matter more than any matrix — as a member of
-`data_engineers`, against **prod**:
+`dbx_labs_data_engineers`, against **prod**:
 
 ```sql
 SELECT count(*) FROM training_prod.NOAA_bronze.bronze_ghcnd_stations;   -- should succeed
