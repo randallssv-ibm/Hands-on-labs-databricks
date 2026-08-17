@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS training_dev.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv 
 )
 COMMENT 'Daily observations, loaded by a plain Structured Streaming job';
 
+-- Users dont have access to do this
 ALTER TABLE training_dev.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv SET TAGS (
     'file_zone' = 'landing',
     'data_layer' = 'bronze',
@@ -67,13 +68,14 @@ ALTER TABLE training_dev.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv SET TBLPROPERTI
 CREATE VOLUME IF NOT EXISTS training_dev.NOAA_bronze.checkpoint_daily_csv
   COMMENT 'Streaming checkpoint for daily_csv_streaming.py';
 
+-- Users dont have access to do this
 ALTER VOLUME training_dev.NOAA_bronze.checkpoint_daily_csv SET TAGS (
     'file_zone' = 'checkpoint',
     'data_layer' = 'bronze',
     'contains_pii' = 'no',
     'data_classification' = 'internal',
     'purpose' = 'structured_streaming_checkpoint',
-    'tech_owner' = '<full_name>'
+    'tech_owner' = 'jeff.vargas@ibm.com'
 );
 
 -- Grants: engineers read + write, dbx_labs_analysts read only.
