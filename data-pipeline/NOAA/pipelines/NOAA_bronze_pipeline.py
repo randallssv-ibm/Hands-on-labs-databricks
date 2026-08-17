@@ -18,6 +18,11 @@ A dataset function just returns a DataFrame.
 from pyspark import pipelines as dp
 from pyspark.sql import functions as F
 
+spark.conf.set(
+    "spark.hadoop.fs.s3a.bucket.noaa-ghcn-pds.aws.credentials.provider",
+    "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider"
+)
+
 SOURCE = "s3://noaa-ghcn-pds"
 YEAR = spark.conf.get("ghcn.source_year")
 
@@ -58,17 +63,18 @@ def bronze_ghcnd_stations():
 )
 def bronze_ghcnd_code_lists():
     def read_codes(file, code_type):
-        raw = spark.read.text(f"{SOURCE}/{file}") 
+        raw = spark.read.text(f"{SOURCE}/{file}")
         return raw.select(
             F.lit(code_type).alias("code_type"),
             F.trim(F.substring("value", 1, 2)).alias("code"),
             F.trim(F.substring("value", 4, 47)).alias("name"),
-        ).where(F.length("value") > 0)
+            F.col("_metadata.file_path").alias("_source_file"),  # captured per-branch, pre-union
+        )
 
     codes = read_codes("ghcnd-countries.txt", "COUNTRY").unionByName(
         read_codes("ghcnd-states.txt", "STATE")
     )
-    return _lineage(codes)
+    return codes.withColumn("_ingested_at", F.current_timestamp())
 
 
 # Inventory, upsert on (station_id, element) -> AUTO CDC
@@ -91,11 +97,10 @@ dp.create_streaming_table(
     table_properties=TABLE_PROPERTIES,
 )
 
-dp.create_auto_cdc_flow(
+dp.create_auto_cdc_from_snapshot_flow(
     target="bronze_ghcnd_inventory",
     source="inventory_source",
     keys=["station_id", "element"],
-    sequence_by=F.col("_ingested_at"),
     stored_as_scd_type=1,
 )
 

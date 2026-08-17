@@ -6,7 +6,7 @@
 -- schema: NOAA_bronze
 -- storage credential: ghcn_public_data   (must already exist)
 
--- Required pre-existing roles: dbx_labs_data_engineers, dbx_labs_analysts
+-- Required pre-existing roles for all: dbx_labs_data_engineers, dbx_labs_analysts
 
 -- -- CATALOG SHOULD ALREADY EXIST
 -- CREATE CATALOG IF NOT EXISTS training_dev;
@@ -22,10 +22,12 @@ ALTER SCHEMA training_dev.NOAA_bronze SET TAGS (
 
 -- Read access to the public bucket. Everything after this reads
 -- s3://noaa-ghcn-pds/... directly with plain spark.read / spark.readStream.
-CREATE EXTERNAL LOCATION IF NOT EXISTS ghcn_public_bucket
-  URL 's3://noaa-ghcn-pds/'
-  WITH (STORAGE CREDENTIAL `ghcn_public_data`)
-  COMMENT 'Public NOAA GHCN-D bucket, read-only';
+-- CREATE EXTERNAL LOCATION IF NOT EXISTS ghcn_public_bucket
+--   URL 's3://noaa-ghcn-pds/'
+--   WITH (STORAGE CREDENTIAL `AWS_NOAA`)
+--   COMMENT 'Public NOAA GHCN-D bucket, read-only';
+-- DUE TO LIMITATIONS FOR READ ONLY EXTERNAL LOCATIONS, THIS MUST BE CREATED ON UI
+-- Catalog → Connect → External Locations → Create external location → Manual
 
 GRANT READ FILES ON EXTERNAL LOCATION ghcn_public_bucket TO `dbx_labs_data_engineers`;
 
