@@ -75,7 +75,7 @@ ALTER VOLUME training_dev.NOAA_bronze.checkpoint_daily_csv SET TAGS (
     'contains_pii' = 'no',
     'data_classification' = 'internal',
     'purpose' = 'structured_streaming_checkpoint',
-    'tech_owner' = 'jeff.vargas@ibm.com'
+    'tech_owner' = '<full_name>'
 );
 
 -- Grants: engineers read + write, dbx_labs_analysts read only.
