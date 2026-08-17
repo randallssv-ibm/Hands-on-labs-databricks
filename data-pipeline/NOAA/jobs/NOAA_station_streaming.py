@@ -28,7 +28,7 @@ codes = [c.strip() for c in dbutils.widgets.get("country_codes").split(",")]
 
 TABLE = f"{catalog}.{schema}.NOAA_bronze_ghcnd_daily_csv"
 CHECKPOINT = f"/Volumes/{catalog}/{schema}/checkpoint_daily_csv"
-SCHEMA_LOCATION = f"/Volumes/{catalog}/{schema}/checkpoints/daily_csv_schema"
+SCHEMA_LOCATION = f"/Volumes/{catalog}/{schema}/checkpoint_daily_csv/daily_csv_schema"
 
 # COMMAND ----------
 
