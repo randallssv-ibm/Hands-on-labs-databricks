@@ -1,21 +1,21 @@
 resources:
   pipelines:
-    bronze:
+    ghcn_bronze:
       name: ghcn_bronze
       catalog: ${var.catalog}
-      schema: ${var.schema}
+      schema: ${var.bronze_schema}
       serverless: true
       continuous: false
       configuration:
         ghcn.source_year: ${var.source_year}
       libraries:
         - file:
-            path: ./data-pipeline/NOAA_bronze_pipeline.py
+            path: ../../../data-pipeline/NOAA/pipelines/NOAA_bronze_pipeline.py
       # permissions:
       #   - level: CAN_MANAGE
-      #     group_name: data-engineer
+      #     group_name: dbx_labs_data_engineers
       #   - level: CAN_VIEW
-      #     group_name: analytic
+      #     group_name: dbx_labs_analytics
       # notifications:
       #   - email_recipients:
       #       - ${var.notification_email}
@@ -24,35 +24,20 @@ resources:
       #       - on-update-fatal-failure
       #       - on-flow-failure        
 
-  # jobs:
-  #   bronze_ingest:
-  #     name: ghcn_bronze_ingest
-  #     schedule:
-  #       quartz_cron_expression: "0 0/30 * * * ?"
-  #       timezone_id: America/Costa_Rica
+  jobs:
+    bronze_ingest:
+      name: ghcn_bronze_ingest
 
-  #     tasks:
-  #       - task_key: setup
-  #         notebook_task:
-  #           notebook_path: ../setup/00_setup.py
-  #           base_parameters:
-  #             catalog: ${var.catalog}
-  #             schema: ${var.schema}
-  #             storage_credential: ${var.storage_credential}
-  #             de_group: ${var.de_group}
-  #             analyst_group: ${var.analyst_group}
+      tasks:
+        - task_key: build_bronze_pipeline
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.ghcn_bronze.id}
 
-  #       - task_key: build_bronze
-  #         depends_on:
-  #           - task_key: setup
-  #         pipeline_task:
-  #           pipeline_id: ${resources.pipelines.bronze.id}
-
-  #       - task_key: daily_csv_streaming
-  #         depends_on:
-  #           - task_key: setup
-  #         notebook_task:
-  #           notebook_path: ../jobs/daily_csv_streaming.py
-  #           base_parameters:
-  #             catalog: ${var.catalog}
-  #             schema: ${var.schema}
+        - task_key: daily_csv_streaming
+          depends_on:
+            - task_key: build_bronze_pipeline
+          notebook_task:
+            notebook_path: ../../../data-pipeline/NOAA/jobs/NOAA_station_streaming.py
+            base_parameters:
+              catalog: ${var.catalog}
+              schema: ${var.bronze_schema}

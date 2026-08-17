@@ -77,7 +77,7 @@ Edit in `databricks.yml`:
 
 Two groups, both inheriting from the schema — nothing granted per table:
 
-| | `data_engineers` | `analysts` |
+| | `dbx_labs_data_engineers` | `dbx_labs_analysts` |
 |---|---|---|
 | Catalog | `USE CATALOG` | `USE CATALOG` |
 | Schema | `USE SCHEMA`, `SELECT`, `MODIFY`, `CREATE TABLE` | `USE SCHEMA`, `SELECT` |

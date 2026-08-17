@@ -28,6 +28,7 @@ codes = [c.strip() for c in dbutils.widgets.get("country_codes").split(",")]
 
 TABLE = f"{catalog}.{schema}.NOAA_bronze_ghcnd_daily_csv"
 CHECKPOINT = f"/Volumes/{catalog}/{schema}/checkpoint_daily_csv"
+SCHEMA_LOCATION = f"/Volumes/{catalog}/{schema}/checkpoint_daily_csv/daily_csv_schema"
 
 # COMMAND ----------
 
@@ -38,6 +39,7 @@ glob_pattern = "{" + ",".join(f"{c}*.csv" for c in codes) + "}"
 stream = (
     spark.readStream.format("cloudFiles")
     .option("cloudFiles.format", "csv")
+    .option("cloudFiles.schemaLocation", SCHEMA_LOCATION)
     .option("header", "true")
     .option("pathGlobFilter", glob_pattern)
     .load("s3://noaa-ghcn-pds/csv/by_station/")
@@ -60,6 +62,7 @@ stream = (
 query = (
     stream.writeStream
     .option("checkpointLocation", CHECKPOINT)
+    .option("mergeSchema", "true")
     .trigger(availableNow=True) # process one time (for costs)
     .toTable(TABLE)
 )

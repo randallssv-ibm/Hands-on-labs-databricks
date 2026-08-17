@@ -30,13 +30,13 @@ variables:
 
   de_group:
     description: Data engineering group.
-    default: labs_data_engineer
+    default: dbx_labs_data_engineer
   analyst_group:
     description: Analytics / BI consumer group.
-    default: labs_analysts
+    default: dbx_labs_analysts
   admin_group:
     description: Owner group for the catalog and schema (no individual owners).
-    default: labs_platform_admin
+    default: dbx_labs_platform_admin
   run_as_sp:
     description: Application ID of the service principal that runs production jobs.
     default: 00000000-0000-0000-0000-000000000000

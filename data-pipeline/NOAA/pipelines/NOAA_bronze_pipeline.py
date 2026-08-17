@@ -18,6 +18,11 @@ A dataset function just returns a DataFrame.
 from pyspark import pipelines as dp
 from pyspark.sql import functions as F
 
+spark.conf.set(
+    "spark.hadoop.fs.s3a.bucket.noaa-ghcn-pds.aws.credentials.provider",
+    "org.apache.hadoop.fs.s3a.AnonymousAWSCredentialsProvider"
+)
+
 SOURCE = "s3://noaa-ghcn-pds"
 YEAR = spark.conf.get("ghcn.source_year")
 
@@ -38,7 +43,7 @@ def _lineage(df):
     table_properties=TABLE_PROPERTIES,
 )
 def bronze_ghcnd_stations():
-    raw = spark.read.text(f"{SOURCE}/ghcnd-stations.txt")  # noqa: F821
+    raw = spark.read.text(f"{SOURCE}/ghcnd-stations.txt")
     return _lineage(
         raw.select(
             F.trim(F.substring("value", 1, 11)).alias("station_id"),
@@ -58,23 +63,24 @@ def bronze_ghcnd_stations():
 )
 def bronze_ghcnd_code_lists():
     def read_codes(file, code_type):
-        raw = spark.read.text(f"{SOURCE}/{file}")  # noqa: F821
+        raw = spark.read.text(f"{SOURCE}/{file}")
         return raw.select(
             F.lit(code_type).alias("code_type"),
             F.trim(F.substring("value", 1, 2)).alias("code"),
             F.trim(F.substring("value", 4, 47)).alias("name"),
-        ).where(F.length("value") > 0)
+            F.col("_metadata.file_path").alias("_source_file"),  # captured per-branch, pre-union
+        )
 
     codes = read_codes("ghcnd-countries.txt", "COUNTRY").unionByName(
         read_codes("ghcnd-states.txt", "STATE")
     )
-    return _lineage(codes)
+    return codes.withColumn("_ingested_at", F.current_timestamp())
 
 
 # Inventory, upsert on (station_id, element) -> AUTO CDC
 @dp.temporary_view(name="inventory_source")
 def inventory_source():
-    raw = spark.read.text(f"{SOURCE}/ghcnd-inventory.txt")  # noqa: F821
+    raw = spark.read.text(f"{SOURCE}/ghcnd-inventory.txt")
     return raw.select(
         F.trim(F.substring("value", 1, 11)).alias("station_id"),
         F.trim(F.substring("value", 13, 8)).alias("latitude"),
@@ -91,11 +97,10 @@ dp.create_streaming_table(
     table_properties=TABLE_PROPERTIES,
 )
 
-dp.create_auto_cdc_flow(
+dp.create_auto_cdc_from_snapshot_flow(
     target="bronze_ghcnd_inventory",
     source="inventory_source",
     keys=["station_id", "element"],
-    sequence_by=F.col("_ingested_at"),
     stored_as_scd_type=1,
 )
 
