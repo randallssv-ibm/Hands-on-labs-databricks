@@ -47,8 +47,30 @@ CREATE TABLE IF NOT EXISTS training_dev.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv 
 )
 COMMENT 'Daily observations, loaded by a plain Structured Streaming job';
 
+CREATE TABLE IF NOT EXISTS training_prod.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv (
+  id           STRING    COMMENT 'Station id, first 2 chars are the FIPS country code',
+  date         STRING    COMMENT 'Observation date, YYYYMMDD',
+  element      STRING    COMMENT 'Measurement code, e.g. TMAX, PRCP',
+  data_value   STRING    COMMENT 'Raw value in the element''s own unit, untyped',
+  m_flag       STRING    COMMENT 'Measurement flag',
+  q_flag       STRING    COMMENT 'Quality flag — blank means it passed QC',
+  s_flag       STRING    COMMENT 'Source flag',
+  obs_time     STRING    COMMENT 'Observation time HHMM, often blank',
+  _source_file STRING    COMMENT 'Lineage: source file path',
+  _ingested_at TIMESTAMP COMMENT 'Lineage: load timestamp'
+)
+COMMENT 'Daily observations, loaded by a plain Structured Streaming job';
+
 -- Users dont have access to do this
 ALTER TABLE training_dev.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv SET TAGS (
+    'file_zone' = 'landing',
+    'data_layer' = 'bronze',
+    'contains_pii' = 'no',
+    'data_classification' = 'public',
+    'external_access' = 'yes'
+);
+
+ALTER TABLE training_prod.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv SET TAGS (
     'file_zone' = 'landing',
     'data_layer' = 'bronze',
     'contains_pii' = 'no',
@@ -64,12 +86,33 @@ ALTER TABLE training_dev.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv SET TBLPROPERTI
     'delta.deletedFileRetentionDuration' = 'interval 7 days'
 );
 
+ALTER TABLE training_prod.NOAA_bronze.NOAA_bronze_ghcnd_daily_csv SET TBLPROPERTIES (
+    'delta.autoOptimize.optimizeWrite' = 'true',
+    'delta.autoOptimize.autoCompact' = 'true',
+    'delta.dataSkippingStatsColumns' = 'id,date,element',
+    'delta.logRetentionDuration' = 'interval 30 days',
+    'delta.deletedFileRetentionDuration' = 'interval 7 days'
+);
+
+
 -- Only used for a streaming checkpoint.
 CREATE VOLUME IF NOT EXISTS training_dev.NOAA_bronze.checkpoint_daily_csv
   COMMENT 'Streaming checkpoint for daily_csv_streaming.py';
 
+  CREATE VOLUME IF NOT EXISTS training_prod.NOAA_bronze.checkpoint_daily_csv
+  COMMENT 'Streaming checkpoint for daily_csv_streaming.py';
+
 -- Users dont have access to do this
 ALTER VOLUME training_dev.NOAA_bronze.checkpoint_daily_csv SET TAGS (
+    'file_zone' = 'checkpoint',
+    'data_layer' = 'bronze',
+    'contains_pii' = 'no',
+    'data_classification' = 'internal',
+    'purpose' = 'structured_streaming_checkpoint',
+    'tech_owner' = '<full_name>'
+);
+
+ALTER VOLUME training_prod.NOAA_bronze.checkpoint_daily_csv SET TAGS (
     'file_zone' = 'checkpoint',
     'data_layer' = 'bronze',
     'contains_pii' = 'no',
